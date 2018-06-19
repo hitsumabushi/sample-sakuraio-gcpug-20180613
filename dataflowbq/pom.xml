@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>sample-sakuraio-gcp</groupId>
+    <artifactId>dataflow-bq</artifactId>
+    <version>1.0</version>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <java.version>1.8</java.version>
+        <maven-compiler-plugin.version>3.6.1</maven-compiler-plugin.version>
+        <maven-assembly-plugin.version>2.4</maven-assembly-plugin.version>
+        <beam-sdks-java-core.version>2.4.0</beam-sdks-java-core.version>
+        <beam-runners-direct-java.version>2.4.0</beam-runners-direct-java.version>
+        <beam-runners-google-cloud-dataflow-java.version>2.4.0</beam-runners-google-cloud-dataflow-java.version>
+        <json.version>20180130</json.version>
+        <slf4j.version>1.7.25</slf4j.version>
+        <logback.version>1.2.3</logback.version>
+        <mojo.version>1.6.0</mojo.version>
+    </properties>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <configuration>
+                    <source>7</source>
+                    <target>7</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.3</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>${project.artifactId}-bundled-${project.version}</finalName>
+                            <artifactSet>
+                                <includes>
+                                    <include>*:*</include>
+                                </includes>
+                            </artifactSet>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>${mojo.version}</version>
+                    <configuration>
+                        <cleanupDaemonThreads>false</cleanupDaemonThreads>
+                        <mainClass>io.sakura.sample.DataflowToBq</mainClass>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.beam</groupId>
+            <artifactId>beam-sdks-java-core</artifactId>
+            <version>${beam-sdks-java-core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.beam</groupId>
+            <artifactId>beam-runners-direct-java</artifactId>
+            <version>${beam-runners-direct-java.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.beam</groupId>
+            <artifactId>beam-runners-google-cloud-dataflow-java</artifactId>
+            <version>${beam-runners-google-cloud-dataflow-java.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>${json.version}</version>
+        </dependency>
+        <!-- logging -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
+    </dependencies>
+
+    <!-- ここから書き換える -->
+    <profiles>
+        <profile>
+            <id>demo</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <target.project>YOUR_PROJECT_NAME(例: sample-pjt)</target.project>
+                <target.subscription>YOUR_PUBSUB_SUBSCRIPTION_NAME(例: demo-gcpug)</target.subscription>
+                <target.bigquery.table>YOUR_BIGQUERY_TABLE(例: sample-pjt:demo_gcpug_dataset.table)</target.bigquery.table>
+                <target.templocation>YOUR_TEMPORARY_DIRECTORY(例: gs://demo-gcpug/tmp)</target.templocation>
+                <target.jobname>YOUR_JOB_NAME(例: demo-gcpug-job)</target.jobname>
+                <target.numWorkers>1</target.numWorkers>
+                <target.maxNumWorkers>3</target.maxNumWorkers>
+                <target.diskSizeGb>20</target.diskSizeGb>
+                <target.workerMachineType>n1-standard-1</target.workerMachineType>
+            </properties>
+        </profile>
+    </profiles>
+</project>
